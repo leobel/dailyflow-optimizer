@@ -289,7 +289,7 @@ function App() {
       {loading && (
         <LoadingContainer>
           <InfiniteProgressBar />
-          <LoadingText>Optimizing...</LoadingText>
+          <LoadingText>Getting your schedule...</LoadingText>
         </LoadingContainer>
       )}
 
