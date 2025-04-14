@@ -97,7 +97,7 @@ function App() {
     
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.PROD ? '/plan' : 'http://localhost:8080/plan';
+      const apiUrl = import.meta.env.VITE_API_URL + '/plan';
       const response = await axios.post(apiUrl, { tasks });
       setSchedule(response.data.schedule);
     } catch (error) {
