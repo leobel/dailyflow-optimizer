@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import 'react-circular-progressbar/dist/styles.css';
-import { getPlan } from './services/plan.service';
+import { getSchedule } from './services/plan.service';
 import { Schedule } from './models/schedule';
 
 const AppContainer = styled.div`
@@ -242,7 +242,7 @@ function App() {
     setSchedule(null);
     setError('');
     try {
-      const schedule = await getPlan(tasks);
+      const schedule = await getSchedule(tasks);
       setSchedule(schedule);
     } catch (error) {
       setError('Failed to generate schedule. Please try again later.');
@@ -296,7 +296,7 @@ function App() {
       {!loading && schedule && (
         <ScheduleContainer>
           <ScheduleTitle>Here is your optimized schedule</ScheduleTitle>
-          <ScheduleExplanation>{schedule.explanations.join(' ')}</ScheduleExplanation>
+          <ScheduleExplanation>{schedule.explanation}</ScheduleExplanation>
           {schedule.tasks.map((item, index) => (
             <ScheduleItem key={`schedule-item-${index}-${item.time}`}>
               <Time>{item.time}:</Time>

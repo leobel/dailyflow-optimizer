@@ -1,6 +1,6 @@
 import { ScheduleItem } from "./schedule-item";
 
 export interface Schedule {
-    explanations: string[];
+    explanation: string;
     tasks: ScheduleItem[];
 }
