@@ -1,0 +1,45 @@
+# Dependencies
+src/webapp/node_modules
+src/webapp/.pnp
+src/webapp/.pnp.js
+
+# Testing
+src/webapp/coverage
+
+# Production
+src/webapp/dist
+src/webapp/build
+
+# Misc
+src/webapp/.DS_Store
+src/webapp/.env.local
+src/webapp/.env.development.local
+src/webapp/.env.test.local
+src/webapp/.env.production.local
+src/webapp/npm-debug.log*
+src/webapp/yarn-debug.log*
+src/webapp/yarn-error.log*
+
+# Editor directories and files
+.vscode/*
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Go specific
+src/api/*.exe
+src/api/*.exe~
+src/api/*.dll
+src/api/*.so
+src/api/*.dylib
+src/api/*.test
+src/api/*.out
+src/api/.env
+
+# Common
+.DS_Store
+.env
+.env.*
