@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { CircularProgressbar } from 'react-circular-progressbar';
+import { FaPlus, FaTrash } from 'react-icons/fa';
 import 'react-circular-progressbar/dist/styles.css';
 import axios from 'axios';
 
@@ -11,30 +12,86 @@ const AppContainer = styled.div`
   font-family: Arial, sans-serif;
 `;
 
-const Title = styled.h1`
+const Title = styled.h2`
   text-align: center;
   color: #2c3e50;
 `;
 
-const InputContainer = styled.div`
+const TaskInputContainer = styled.div`
+  display: flex;
+  gap: 10px;
   margin: 20px 0;
 `;
 
-const TaskInput = styled.textarea`
-  width: 100%;
-  height: 100px;
+const TaskInput = styled.input`
+  flex: 1;
   padding: 10px;
   border: 2px solid #3498db;
   border-radius: 5px;
   font-size: 16px;
-  resize: vertical;
+`;
+
+const AddButton = styled.button`
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover {
+    background-color: #2980b9;
+  }
+`;
+
+const TaskList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+`;
+
+const TaskItem = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  color: #2c3e50;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+`;
+
+const TaskText = styled.span`
+  flex: 1;
+  text-align: left;
+`;
+
+const DeleteButton = styled.button`
+  padding: 5px 10px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover {
+    background-color: #c0392b;
+  }
 `;
 
 const SubmitButton = styled.button`
   display: block;
   width: 100%;
   padding: 10px;
-  background-color: #3498db;
+  background-color: #2ecc71;
   color: white;
   border: none;
   border-radius: 5px;
@@ -43,7 +100,7 @@ const SubmitButton = styled.button`
   margin-top: 10px;
 
   &:hover {
-    background-color: #2980b9;
+    background-color: #27ae60;
   }
 `;
 
@@ -66,6 +123,7 @@ const Time = styled.span`
 
 const Task = styled.span`
   margin-left: 10px;
+  color: #2c3e50;
 `;
 
 const LoadingContainer = styled.div`
@@ -88,17 +146,29 @@ interface ScheduleItem {
 }
 
 function App() {
-  const [tasks, setTasks] = useState('');
+  const [newTask, setNewTask] = useState('');
+  const [tasks, setTasks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
 
+  const handleAddTask = () => {
+    if (newTask.trim()) {
+      setTasks([...tasks, newTask.trim()]);
+      setNewTask('');
+    }
+  };
+
+  const handleDeleteTask = (index: number) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
-    if (!tasks.trim()) return;
+    if (tasks.length === 0) return;
     
     setLoading(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL + '/plan';
-      const response = await axios.post(apiUrl, { tasks });
+      const response = await axios.post(apiUrl, { tasks: tasks.join('\n') });
       setSchedule(response.data.schedule);
     } catch (error) {
       console.error('Error planning schedule:', error);
@@ -109,15 +179,37 @@ function App() {
 
   return (
     <AppContainer>
-      <Title>Daily Flow Optimizer</Title>
-      <InputContainer>
+      <Title>Daily Flow Optimizer, please enter your tasks for today</Title>
+      
+      <TaskInputContainer>
         <TaskInput
-          placeholder="Enter your tasks for today (one per line)"
-          value={tasks}
-          onChange={(e) => setTasks(e.target.value)}
+          type="text"
+          placeholder="Add a new task..."
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          onKeyUp={(e) => e.key === 'Enter' && handleAddTask()}
         />
-        <SubmitButton onClick={handleSubmit}>Optimize My Day</SubmitButton>
-      </InputContainer>
+        <AddButton onClick={handleAddTask}>
+           Add
+        </AddButton>
+      </TaskInputContainer>
+
+      <TaskList>
+        {tasks.map((task, index) => (
+          <TaskItem key={index}>
+            <TaskText>{task}</TaskText>
+            <DeleteButton onClick={() => handleDeleteTask(index)}>
+              <FaTrash />
+            </DeleteButton>
+          </TaskItem>
+        ))}
+      </TaskList>
+
+      {tasks.length > 0 && (
+        <SubmitButton onClick={handleSubmit}>
+          Optimize My Day
+        </SubmitButton>
+      )}
 
       {loading && (
         <LoadingContainer>
