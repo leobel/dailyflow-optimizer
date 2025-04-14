@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import 'react-circular-progressbar/dist/styles.css';
-import axios from 'axios';
-
+import { getPlan } from './services/plan.service';
+import { Schedule } from './models/schedule';
 const AppContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
@@ -23,7 +23,10 @@ const TaskInputContainer = styled.div`
   margin: 20px 0;
 `;
 
-const TaskInput = styled.input`
+const TaskInput = styled.input.attrs({
+  type: 'text',
+  placeholder: 'Add a new task...'
+})`
   flex: 1;
   padding: 10px;
   border: 2px solid #3498db;
@@ -31,20 +34,22 @@ const TaskInput = styled.input`
   font-size: 16px;
 `;
 
-const AddButton = styled.button`
+const AddButton = styled.button.attrs({
+  type: 'button'
+})<{ disabled?: boolean }>`
   padding: 10px 20px;
-  background-color: #3498db;
+  background-color: ${props => props.disabled ? '#95a5a6' : '#3498db'};
   color: white;
   border: none;
   border-radius: 5px;
   font-size: 16px;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   display: flex;
   align-items: center;
   gap: 5px;
 
   &:hover {
-    background-color: #2980b9;
+    background-color: ${props => props.disabled ? '#95a5a6' : '#2980b9'};
   }
 `;
 
@@ -71,7 +76,9 @@ const TaskText = styled.span`
   text-align: left;
 `;
 
-const DeleteButton = styled.button`
+const DeleteButton = styled.button.attrs({
+  type: 'button'
+})`
   padding: 5px 10px;
   background-color: #e74c3c;
   color: white;
@@ -87,43 +94,53 @@ const DeleteButton = styled.button`
   }
 `;
 
-const SubmitButton = styled.button`
+const SubmitButton = styled.button.attrs({
+  type: 'button'
+})<{ disabled?: boolean }>`
   display: block;
   width: 100%;
   padding: 10px;
-  background-color: #2ecc71;
+  background-color: ${props => props.disabled ? '#95a5a6' : '#2ecc71'};
   color: white;
   border: none;
   border-radius: 5px;
   font-size: 16px;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   margin-top: 10px;
 
   &:hover {
-    background-color: #27ae60;
+    background-color: ${props => props.disabled ? '#95a5a6' : '#27ae60'};
   }
 `;
 
 const ScheduleContainer = styled.div`
+  color: #2c3e50;
   margin-top: 30px;
 `;
 
+const ScheduleExplanation = styled.p`
+  text-align: left;
+  margin-bottom: 10px;
+  font-size: 18px;
+`;
+
 const ScheduleItem = styled.div`
+  display: flex;
+  align-items: start;
   background-color: #f8f9fa;
   padding: 15px;
   margin: 10px 0;
-  border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 `;
 
 const Time = styled.span`
   font-weight: bold;
-  color: #2c3e50;
 `;
 
 const Task = styled.span`
+  flex: 1;
   margin-left: 10px;
-  color: #2c3e50;
+  text-align: left;
 `;
 
 const LoadingContainer = styled.div`
@@ -139,17 +156,11 @@ const LoadingText = styled.p`
   color: #2c3e50;
 `;
 
-interface ScheduleItem {
-  time: string;
-  task: string;
-  explanation: string;
-}
-
 function App() {
   const [newTask, setNewTask] = useState('');
   const [tasks, setTasks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [schedule, setSchedule] = useState<Schedule>();
 
   const handleAddTask = () => {
     if (newTask.trim()) {
@@ -167,9 +178,8 @@ function App() {
     
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL + '/plan';
-      const response = await axios.post(apiUrl, { tasks: tasks.join('\n') });
-      setSchedule(response.data.schedule);
+      const schedule = await getPlan(tasks);
+      setSchedule(schedule);
     } catch (error) {
       console.error('Error planning schedule:', error);
     } finally {
@@ -183,14 +193,12 @@ function App() {
       
       <TaskInputContainer>
         <TaskInput
-          type="text"
-          placeholder="Add a new task..."
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           onKeyUp={(e) => e.key === 'Enter' && handleAddTask()}
         />
-        <AddButton onClick={handleAddTask}>
-           Add
+        <AddButton onClick={handleAddTask} disabled={loading || newTask.trim() === ''}>
+          <FaPlus /> Add
         </AddButton>
       </TaskInputContainer>
 
@@ -205,11 +213,9 @@ function App() {
         ))}
       </TaskList>
 
-      {tasks.length > 0 && (
-        <SubmitButton onClick={handleSubmit}>
-          Optimize My Day
-        </SubmitButton>
-      )}
+      <SubmitButton onClick={handleSubmit} disabled={loading || tasks.length === 0}>
+        Optimize My Day
+      </SubmitButton>
 
       {loading && (
         <LoadingContainer>
@@ -218,14 +224,14 @@ function App() {
         </LoadingContainer>
       )}
 
-      {schedule.length > 0 && (
+      {schedule && (
         <ScheduleContainer>
           <h2>Your Optimized Schedule</h2>
-          {schedule.map((item, index) => (
-            <ScheduleItem key={index}>
+          <ScheduleExplanation>{schedule.explanations.join(' ')}</ScheduleExplanation>
+          {schedule.tasks.map((item, index) => (
+            <ScheduleItem key={`schedule-item-${index}-${item.time}`}>
               <Time>{item.time}:</Time>
               <Task>{item.task}</Task>
-              <p>{item.explanation}</p>
             </ScheduleItem>
           ))}
         </ScheduleContainer>
@@ -234,4 +240,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
