@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FaPlus, FaTrash } from 'react-icons/fa';
-import 'react-circular-progressbar/dist/styles.css';
 import { getSchedule } from './services/plan.service';
 import { Schedule } from './models/schedule';
 

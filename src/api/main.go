@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
@@ -19,7 +20,12 @@ var (
 
 func main() {
 	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
+	envFile := ".env"
+	if os.Getenv("DAILYFLOW_OPTIMIZER_ENV") == "production" {
+		envFile = ".env.production"
+	}
+
+	if err := godotenv.Load(envFile); err != nil {
 		log.Println("Warning: .env file not found, using default environment variables")
 	}
 
@@ -60,9 +66,16 @@ func main() {
 
 	// Serve static files in production
 	if os.Getenv("DAILYFLOW_OPTIMIZER_ENV") == "production" {
-		mux.Handle("GET /", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		staticDir := "../webapp/dist"
+		fs := http.FileServer(http.Dir(filepath.Join(staticDir, "assets")))
+
+		// Serve static files
+		mux.Handle("/assets/", http.StripPrefix("/assets/", fs))
+
+		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 			// In production, serve the built frontend files
-			http.ServeFile(w, r, "../webapp/dist/index.html")
+			http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))
 		}))
 	}
 
